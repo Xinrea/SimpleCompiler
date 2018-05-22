@@ -1,4 +1,5 @@
-39
-98
-10ccd739
-107
+Int main() {
+	Int a=100;
+	Print a;
+	Return a;
+}
