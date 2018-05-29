@@ -1,14 +1,13 @@
-#include <cstdlib>
-#include <cstdio>
-#include "lex.yy.c"
+#include "syntax.tab.h"
+
+#include <iostream>
+using namespace std;
+
+extern FILE *yyin;
 
 int main(int argc, char** argv){
-	if(argc>1){
-		if(!(yyin=fopen(argv[1],"r"))){
-			perror(argv[1]);
-			return 1;
-		}
-		while(yylex()!=0);
-		return 0;	
-	}
+	yyin = fopen(argv[1],"r");
+	if(!yyin)return 0;
+	yyparse();
+	return 0;
 }

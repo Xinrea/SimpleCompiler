@@ -1,0 +1,85 @@
+%{
+    #include <string>
+    #include <iostream>
+    #include "node.h"
+    NBlock *topBlock;
+    extern FILE *yyin;
+    extern int yylineno;
+    extern char *yytext;
+    extern int yylex();
+    void yyerror(const char* s);
+%}
+%union {
+    Node *node;
+    NBlock *block;
+    NExpression *expr;
+    NStatement *stmt;
+    NIdentifier *ident;
+    NVariableDeclaration *var_decl;
+    std::vector<NVariableDeclaration*> *varvec;
+    std::vector<NExpression*> *exprvec;
+    std::string *string;
+    int token;
+}
+%token <string> CHAR IDENT
+%token <string> INT BOOL
+%token <string> FLOAT
+%token <token> LB RB LP RP COM AS SEM SRET
+
+%type <ident> ID TYPE
+%type <expr> EXP TERM
+%type <varvec> PARAS
+%type <exprvec> CALLS
+%type <block> S STATS BLOCK
+%type <stmt> STAT VARDECL FUNDECL
+
+
+
+%left ADD SUB
+%left MUL DIV
+%%
+S : STATS {topBlock=$1;}
+    ;
+STATS : STAT {$$=new NBlock();$$->statements.push_back($<stmt>1);}
+    |STATS STAT {$1->statements.push_back($<stmt>2);}
+    ;
+STAT : VARDECL {$$=$1;}
+    |FUNDECL {$$=$1;}
+    |EXP {$$=new NExpressionStatement(*$1);}
+    ;
+BLOCK : LB STATS RB {$$=$2;}
+    |LB RB {$$=new NBlock();}
+    ;
+VARDECL : TYPE ID {$$=new NVariableDeclaration(*$1,*$2);}
+    |TYPE ID AS EXP {$$=new NVariableDeclaration(*$1,*$2,*$4);}
+    ;
+FUNDECL : TYPE ID LP PARAS RP BLOCK {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
+    ;
+PARAS : {$$=new VariableList();}
+    |VARDECL {$$=new VariableList();$$->push_back($<VARDECL>1);}
+    |PARAS COM VARDECL {$$->push_back($<VARDECL>3);}
+    ;
+ID : IDENT {$$=new NIdentifier(*$1);delete $1;}
+    ;
+EXP : ID AS EXP
+    |ID LP CALLS RP
+    |ID
+    |TERM
+    ;
+TERM : INT {$$=new NInteger(atoi($1->c_str()));}
+    |FLOAT {$$=new NDouble(atof($1->c_str()));}
+    |BOOL {$$=new NInteger($1[0]=='t'?1:0);}
+    |CHAR {$$=new NInteger($1[0]);}
+    ;
+%%
+
+int main(int argc, char** argv){
+	yyin = fopen(argv[1],"r");
+	if(!yyin)return 0;
+	yyparse();
+	return 0;
+}
+
+void yyerror(const char* s){
+    printf("%s at line %d: %s\n",s,yylineno,yytext);
+}

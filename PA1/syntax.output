@@ -1,0 +1,525 @@
+Grammar
+
+    0 $accept: S $end
+
+    1 S: /* empty */
+    2  | Functions
+
+    3 Functions: Function
+    4          | Functions Function
+
+    5 Function: TYPE ID LP PARAS RP LB STATS RB
+
+    6 PARAS: PARA
+    7      | PARAS COM PARA
+
+    8 PARA: /* empty */
+    9     | TYPE ID
+
+   10 STATS: SRET
+   11      | STAT STATS
+
+   12 STAT: EXP SEM
+   13     | ID AS EXP SEM
+   14     | TYPE ID AS EXP SEM
+
+   15 EXP: FACTOR
+   16    | EXP ADD FACTOR
+   17    | EXP SUB FACTOR
+
+   18 FACTOR: TERM
+   19       | FACTOR MUL TERM
+   20       | FACTOR DIV TERM
+
+   21 TERM: INT
+   22     | FLOAT
+   23     | BOOL
+   24     | CHAR
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+CHAR (258) 24
+INT (259) 21
+BOOL (260) 23
+FLOAT (261) 22
+ADD (262) 16
+SUB (263) 17
+MUL (264) 19
+DIV (265) 20
+LB (266) 5
+RB (267) 5
+LP (268) 5
+RP (269) 5
+COM (270) 7
+AS (271) 13 14
+SEM (272) 12 13 14
+TYPE (273) 5 9 14
+ID (274) 5 9 13 14
+SRET (275) 10
+
+
+Nonterminals, with rules where they appear
+
+$accept (21)
+    on left: 0
+S (22)
+    on left: 1 2, on right: 0
+Functions (23)
+    on left: 3 4, on right: 2 4
+Function (24)
+    on left: 5, on right: 3 4
+PARAS (25)
+    on left: 6 7, on right: 5 7
+PARA (26)
+    on left: 8 9, on right: 6 7
+STATS (27)
+    on left: 10 11, on right: 5 11
+STAT (28)
+    on left: 12 13 14, on right: 11
+EXP (29)
+    on left: 15 16 17, on right: 12 13 14 16 17
+FACTOR (30)
+    on left: 18 19 20, on right: 15 16 17 19 20
+TERM (31)
+    on left: 21 22 23 24, on right: 18 19 20
+
+
+state 0
+
+    0 $accept: . S $end
+
+    TYPE  shift, and go to state 1
+
+    $default  reduce using rule 1 (S)
+
+    S          go to state 2
+    Functions  go to state 3
+    Function   go to state 4
+
+
+state 1
+
+    5 Function: TYPE . ID LP PARAS RP LB STATS RB
+
+    ID  shift, and go to state 5
+
+
+state 2
+
+    0 $accept: S . $end
+
+    $end  shift, and go to state 6
+
+
+state 3
+
+    2 S: Functions .
+    4 Functions: Functions . Function
+
+    TYPE  shift, and go to state 1
+
+    $default  reduce using rule 2 (S)
+
+    Function  go to state 7
+
+
+state 4
+
+    3 Functions: Function .
+
+    $default  reduce using rule 3 (Functions)
+
+
+state 5
+
+    5 Function: TYPE ID . LP PARAS RP LB STATS RB
+
+    LP  shift, and go to state 8
+
+
+state 6
+
+    0 $accept: S $end .
+
+    $default  accept
+
+
+state 7
+
+    4 Functions: Functions Function .
+
+    $default  reduce using rule 4 (Functions)
+
+
+state 8
+
+    5 Function: TYPE ID LP . PARAS RP LB STATS RB
+
+    TYPE  shift, and go to state 9
+
+    $default  reduce using rule 8 (PARA)
+
+    PARAS  go to state 10
+    PARA   go to state 11
+
+
+state 9
+
+    9 PARA: TYPE . ID
+
+    ID  shift, and go to state 12
+
+
+state 10
+
+    5 Function: TYPE ID LP PARAS . RP LB STATS RB
+    7 PARAS: PARAS . COM PARA
+
+    RP   shift, and go to state 13
+    COM  shift, and go to state 14
+
+
+state 11
+
+    6 PARAS: PARA .
+
+    $default  reduce using rule 6 (PARAS)
+
+
+state 12
+
+    9 PARA: TYPE ID .
+
+    $default  reduce using rule 9 (PARA)
+
+
+state 13
+
+    5 Function: TYPE ID LP PARAS RP . LB STATS RB
+
+    LB  shift, and go to state 15
+
+
+state 14
+
+    7 PARAS: PARAS COM . PARA
+
+    TYPE  shift, and go to state 9
+
+    $default  reduce using rule 8 (PARA)
+
+    PARA  go to state 16
+
+
+state 15
+
+    5 Function: TYPE ID LP PARAS RP LB . STATS RB
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+    TYPE   shift, and go to state 21
+    ID     shift, and go to state 22
+    SRET   shift, and go to state 23
+
+    STATS   go to state 24
+    STAT    go to state 25
+    EXP     go to state 26
+    FACTOR  go to state 27
+    TERM    go to state 28
+
+
+state 16
+
+    7 PARAS: PARAS COM PARA .
+
+    $default  reduce using rule 7 (PARAS)
+
+
+state 17
+
+   24 TERM: CHAR .
+
+    $default  reduce using rule 24 (TERM)
+
+
+state 18
+
+   21 TERM: INT .
+
+    $default  reduce using rule 21 (TERM)
+
+
+state 19
+
+   23 TERM: BOOL .
+
+    $default  reduce using rule 23 (TERM)
+
+
+state 20
+
+   22 TERM: FLOAT .
+
+    $default  reduce using rule 22 (TERM)
+
+
+state 21
+
+   14 STAT: TYPE . ID AS EXP SEM
+
+    ID  shift, and go to state 29
+
+
+state 22
+
+   13 STAT: ID . AS EXP SEM
+
+    AS  shift, and go to state 30
+
+
+state 23
+
+   10 STATS: SRET .
+
+    $default  reduce using rule 10 (STATS)
+
+
+state 24
+
+    5 Function: TYPE ID LP PARAS RP LB STATS . RB
+
+    RB  shift, and go to state 31
+
+
+state 25
+
+   11 STATS: STAT . STATS
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+    TYPE   shift, and go to state 21
+    ID     shift, and go to state 22
+    SRET   shift, and go to state 23
+
+    STATS   go to state 32
+    STAT    go to state 25
+    EXP     go to state 26
+    FACTOR  go to state 27
+    TERM    go to state 28
+
+
+state 26
+
+   12 STAT: EXP . SEM
+   16 EXP: EXP . ADD FACTOR
+   17    | EXP . SUB FACTOR
+
+    ADD  shift, and go to state 33
+    SUB  shift, and go to state 34
+    SEM  shift, and go to state 35
+
+
+state 27
+
+   15 EXP: FACTOR .
+   19 FACTOR: FACTOR . MUL TERM
+   20       | FACTOR . DIV TERM
+
+    MUL  shift, and go to state 36
+    DIV  shift, and go to state 37
+
+    $default  reduce using rule 15 (EXP)
+
+
+state 28
+
+   18 FACTOR: TERM .
+
+    $default  reduce using rule 18 (FACTOR)
+
+
+state 29
+
+   14 STAT: TYPE ID . AS EXP SEM
+
+    AS  shift, and go to state 38
+
+
+state 30
+
+   13 STAT: ID AS . EXP SEM
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+
+    EXP     go to state 39
+    FACTOR  go to state 27
+    TERM    go to state 28
+
+
+state 31
+
+    5 Function: TYPE ID LP PARAS RP LB STATS RB .
+
+    $default  reduce using rule 5 (Function)
+
+
+state 32
+
+   11 STATS: STAT STATS .
+
+    $default  reduce using rule 11 (STATS)
+
+
+state 33
+
+   16 EXP: EXP ADD . FACTOR
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+
+    FACTOR  go to state 40
+    TERM    go to state 28
+
+
+state 34
+
+   17 EXP: EXP SUB . FACTOR
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+
+    FACTOR  go to state 41
+    TERM    go to state 28
+
+
+state 35
+
+   12 STAT: EXP SEM .
+
+    $default  reduce using rule 12 (STAT)
+
+
+state 36
+
+   19 FACTOR: FACTOR MUL . TERM
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+
+    TERM  go to state 42
+
+
+state 37
+
+   20 FACTOR: FACTOR DIV . TERM
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+
+    TERM  go to state 43
+
+
+state 38
+
+   14 STAT: TYPE ID AS . EXP SEM
+
+    CHAR   shift, and go to state 17
+    INT    shift, and go to state 18
+    BOOL   shift, and go to state 19
+    FLOAT  shift, and go to state 20
+
+    EXP     go to state 44
+    FACTOR  go to state 27
+    TERM    go to state 28
+
+
+state 39
+
+   13 STAT: ID AS EXP . SEM
+   16 EXP: EXP . ADD FACTOR
+   17    | EXP . SUB FACTOR
+
+    ADD  shift, and go to state 33
+    SUB  shift, and go to state 34
+    SEM  shift, and go to state 45
+
+
+state 40
+
+   16 EXP: EXP ADD FACTOR .
+   19 FACTOR: FACTOR . MUL TERM
+   20       | FACTOR . DIV TERM
+
+    MUL  shift, and go to state 36
+    DIV  shift, and go to state 37
+
+    $default  reduce using rule 16 (EXP)
+
+
+state 41
+
+   17 EXP: EXP SUB FACTOR .
+   19 FACTOR: FACTOR . MUL TERM
+   20       | FACTOR . DIV TERM
+
+    MUL  shift, and go to state 36
+    DIV  shift, and go to state 37
+
+    $default  reduce using rule 17 (EXP)
+
+
+state 42
+
+   19 FACTOR: FACTOR MUL TERM .
+
+    $default  reduce using rule 19 (FACTOR)
+
+
+state 43
+
+   20 FACTOR: FACTOR DIV TERM .
+
+    $default  reduce using rule 20 (FACTOR)
+
+
+state 44
+
+   14 STAT: TYPE ID AS EXP . SEM
+   16 EXP: EXP . ADD FACTOR
+   17    | EXP . SUB FACTOR
+
+    ADD  shift, and go to state 33
+    SUB  shift, and go to state 34
+    SEM  shift, and go to state 46
+
+
+state 45
+
+   13 STAT: ID AS EXP SEM .
+
+    $default  reduce using rule 13 (STAT)
+
+
+state 46
+
+   14 STAT: TYPE ID AS EXP SEM .
+
+    $default  reduce using rule 14 (STAT)

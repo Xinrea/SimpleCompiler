@@ -1,9 +1,10 @@
-Int main() {
+Int main(Char e) {
 	// line note
 	/*block note
 	*/
 	Char knowhere='1';
-	Int a=100, c=200;
+	Int a=100;
+	Int c=200;
 	a+=a;
 	Bool b;
 	Print a+c;
