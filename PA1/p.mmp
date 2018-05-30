@@ -1,12 +1,4 @@
-Int main(Char e) {
-	// line note
-	/*block note
-	*/
-	Char knowhere='1';
-	Int a=100;
-	Int c=200;
-	a+=a;
-	Bool b;
-	Print a+c;
-	Return a;
-}
+a=4
+b=5
+a*b
+a=a*b

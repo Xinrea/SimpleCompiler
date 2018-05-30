@@ -21,55 +21,66 @@
     std::string *string;
     int token;
 }
-%token <string> CHAR IDENT
+%token <string> CHAR IDENT TYPE
 %token <string> INT BOOL
 %token <string> FLOAT
 %token <token> LB RB LP RP COM AS SEM SRET
 
-%type <ident> ID TYPE
-%type <expr> EXP TERM
-%type <varvec> PARAS
-%type <exprvec> CALLS
-%type <block> S STATS BLOCK
-%type <stmt> STAT VARDECL FUNDECL
+%type <ident> ident type
+%type <expr> exp term
+%type <varvec> paras
+%type <exprvec> calls
+%type <block> s stats block
+%type <stmt> stat vardecl fundecl
+%type <token> operation
 
 
 
 %left ADD SUB
 %left MUL DIV
 %%
-S : STATS {topBlock=$1;}
+s : stats {topBlock=$1;}
     ;
-STATS : STAT {$$=new NBlock();$$->statements.push_back($<stmt>1);}
-    |STATS STAT {$1->statements.push_back($<stmt>2);}
+stats : stat {$$=new NBlock();$$->statements.push_back($<stmt>1);}
+    |stats stat {$1->statements.push_back($<stmt>2);}
     ;
-STAT : VARDECL {$$=$1;}
-    |FUNDECL {$$=$1;}
-    |EXP {$$=new NExpressionStatement(*$1);}
+stat : vardecl {$$=$1;}
+    |fundecl {$$=$1;}
+    |exp {$$=new NExpressionStatement(*$1);}
     ;
-BLOCK : LB STATS RB {$$=$2;}
+block : LB stats RB {$$=$2;}
     |LB RB {$$=new NBlock();}
     ;
-VARDECL : TYPE ID {$$=new NVariableDeclaration(*$1,*$2);}
-    |TYPE ID AS EXP {$$=new NVariableDeclaration(*$1,*$2,*$4);}
+vardecl : type ident {$$=new NVariableDeclaration(*$1,*$2);}
+    |type ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4);}
     ;
-FUNDECL : TYPE ID LP PARAS RP BLOCK {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
+fundecl : type ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
     ;
-PARAS : {$$=new VariableList();}
-    |VARDECL {$$=new VariableList();$$->push_back($<VARDECL>1);}
-    |PARAS COM VARDECL {$$->push_back($<VARDECL>3);}
+paras : {$$=new VariableList();}
+    |vardecl {$$=new VariableList();$$->push_back($<var_decl>1);}
+    |paras COM vardecl {$$->push_back($<var_decl>3);}
     ;
-ID : IDENT {$$=new NIdentifier(*$1);delete $1;}
+ident : IDENT {$$=new NIdentifier(*$1);delete $1;}
     ;
-EXP : ID AS EXP
-    |ID LP CALLS RP
-    |ID
-    |TERM
+type : TYPE {$$=new NIdentifier(*$1);delete $1;}
     ;
-TERM : INT {$$=new NInteger(atoi($1->c_str()));}
+exp : ident AS exp {$$=new NAssignment(*$<ident>1,*$3);}
+    |ident LP calls RP {$$=new NMethodCall(*$1,*$3);delete $3;}
+    |ident {$<ident>$=$1;}
+    |term
+    |exp operation exp {$$=new NBinaryOperator(*$1,$2,*$3);}
+    |LP exp RP {$$=$2;}
+    ;
+calls : {$$=new ExpressionList();}
+    |exp {$$=new ExpressionList();$$->push_back($1);}
+    |calls COM exp {$1->push_back($3);}
+    ;
+term : INT {$$=new NInteger(atoi($1->c_str()));}
     |FLOAT {$$=new NDouble(atof($1->c_str()));}
-    |BOOL {$$=new NInteger($1[0]=='t'?1:0);}
-    |CHAR {$$=new NInteger($1[0]);}
+    |BOOL {$$=new NInteger((*$1)[0]=='t'?1:0);}
+    |CHAR {$$=new NInteger((*$1)[0]);}
+    ;
+operation : ADD | SUB | MUL | DIV
     ;
 %%
 
@@ -77,6 +88,7 @@ int main(int argc, char** argv){
 	yyin = fopen(argv[1],"r");
 	if(!yyin)return 0;
 	yyparse();
+    topBlock->printNode(0);
 	return 0;
 }
 
