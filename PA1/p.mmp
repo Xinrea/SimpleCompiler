@@ -1,4 +1,8 @@
-a=4
-b=5
-a*b
-a=a*b
+Int main(){
+    Int a=4
+    Block b1(int c){
+        c=1+2
+    }
+}
+
+main()

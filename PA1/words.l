@@ -17,11 +17,6 @@ char '.'
 %%
 true	{SAVE_TOKEN;return BOOL;}
 false	{SAVE_TOKEN;return BOOL;}
-Int	    {return TOKEN(TYPE);}
-Float	{return TOKEN(TYPE);}
-Char	{return TOKEN(TYPE);}
-Bool	{return TOKEN(TYPE);}
-Return  {return TOKEN(SRET);}
 {int}	{SAVE_TOKEN;return INT;}
 {float}	{SAVE_TOKEN;return FLOAT;}
 {id}	{SAVE_TOKEN;return IDENT;}

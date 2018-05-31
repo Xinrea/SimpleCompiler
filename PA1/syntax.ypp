@@ -21,12 +21,12 @@
     std::string *string;
     int token;
 }
-%token <string> CHAR IDENT TYPE
+%token <string> CHAR IDENT
 %token <string> INT BOOL
 %token <string> FLOAT
 %token <token> LB RB LP RP COM AS SEM SRET
 
-%type <ident> ident type
+%type <ident> ident
 %type <expr> exp term
 %type <varvec> paras
 %type <exprvec> calls
@@ -51,18 +51,16 @@ stat : vardecl {$$=$1;}
 block : LB stats RB {$$=$2;}
     |LB RB {$$=new NBlock();}
     ;
-vardecl : type ident {$$=new NVariableDeclaration(*$1,*$2);}
-    |type ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4);}
+vardecl : ident ident {$$=new NVariableDeclaration(*$1,*$2);}
+    |ident ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4);}
     ;
-fundecl : type ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
+fundecl : ident ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
     ;
 paras : {$$=new VariableList();}
     |vardecl {$$=new VariableList();$$->push_back($<var_decl>1);}
     |paras COM vardecl {$$->push_back($<var_decl>3);}
     ;
 ident : IDENT {$$=new NIdentifier(*$1);delete $1;}
-    ;
-type : TYPE {$$=new NIdentifier(*$1);delete $1;}
     ;
 exp : ident AS exp {$$=new NAssignment(*$<ident>1,*$3);}
     |ident LP calls RP {$$=new NMethodCall(*$1,*$3);delete $3;}

@@ -7,7 +7,7 @@ words.cpp: words.l
 syntax.tab.cpp: syntax.ypp
 	bison -d -v syntax.ypp
 lexer: words.cpp parse.cpp
-	g++ $(LDFLAGS) $(CPPFLAGS) words.cpp -o lexer
+	g++ $(LDFLAGS) $(CPPFLAGS) words.cpp -o lexer -std=c++11
 
 clean:
 	rm syntax.tab.cpp syntax.tab.hpp words.cpp words.hpp syntax.output
