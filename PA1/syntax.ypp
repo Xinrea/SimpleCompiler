@@ -1,6 +1,7 @@
 %{
     #include <string>
     #include <iostream>
+    #include <cstdio>
     #include "node.h"
     NBlock *topBlock;
     extern FILE *yyin;
@@ -51,8 +52,8 @@ stat : vardecl {$$=$1;}
 block : LB stats RB {$$=$2;}
     |LB RB {$$=new NBlock();}
     ;
-vardecl : ident ident {$$=new NVariableDeclaration(*$1,*$2);}
-    |ident ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4);}
+vardecl : ident ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4);}
+    |ident ident {$$=new NVariableDeclaration(*$1,*$2);}
     ;
 fundecl : ident ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
     ;

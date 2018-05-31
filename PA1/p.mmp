@@ -1,8 +1,4 @@
 Int main(){
-    Int a=4
-    Block b1(int c){
-        c=1+2
+    Block b1(int c, int d) {
     }
 }
-
-main()
