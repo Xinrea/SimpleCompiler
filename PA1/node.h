@@ -215,7 +215,6 @@ public:
         std::cout << "Para: " << std::endl;
         for(auto i : arguments){
             i->printNode(depth+2);
-            block.printNode(depth+2);
         }
         for(int i=0;i<depth+1;++i){
             std::cout << " ";
