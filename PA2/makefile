@@ -8,7 +8,9 @@ syntax.tab.cpp: syntax.ypp
 	bison -d -v syntax.ypp
 lexer: words.cpp parse.cpp
 	g++ $(LDFLAGS) $(CPPFLAGS) words.cpp -o lexer -std=c++11
-
+test: unit-test-symtable.cpp
+	g++ -o unit-test unit-test-symtable.cpp symtable.cpp
+	./unit-test
 clean:
 	rm syntax.tab.cpp syntax.tab.hpp words.cpp words.hpp syntax.output
-	rm lexer
+	rm lexer unit-test
