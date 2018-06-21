@@ -9,7 +9,7 @@ syntax.tab.cpp: syntax.ypp
 lexer: words.cpp parse.cpp symtable.cpp
 	g++ $(LDFLAGS) $(CPPFLAGS) words.cpp symtable.cpp -o lexer -std=c++11
 test: unit-test-symtable.cpp
-	g++ -o unit-test unit-test-symtable.cpp symtable.cpp
+	g++ -o unit-test unit-test-symtable.cpp symtable.cpp -std=c++11
 	./unit-test
 	rm unit-test
 clean:
