@@ -1,8 +1,21 @@
 Int a
-Char b
-Int c(Int d){
-    Int deep
+Int b
+Char a
+while(a){
+    test(b)
+    Int k
 }
-Float e = 1.25
-a=b+e+f
-c(1.3,4)
+Int c(Int b){
+    
+}
+Int d(){
+    return b
+}
+if(a==b){
+    c(k)
+}
+None j
+c()
+a = d
+d++
+a++

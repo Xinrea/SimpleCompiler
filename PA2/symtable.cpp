@@ -10,17 +10,44 @@ symtable::~symtable()
 
 symbol* symtable::get(const string& name, int level){
     if(!table[name])return nullptr;
+    symbol* res = nullptr;
+    int nearest = level;
     symbol* head = table[name];
-    if(head->level==level){
-        return head;
+    if(head->level<=level){
+        res = head;
+        nearest = level;
     }
     while(head->next){
         head = head->next;
-        if(head->level==level){
-            return head;
+        if(head->level<=nearest){
+            head = head->next;
+            nearest = head->level;
         }
     }
-    return nullptr;
+    return res;
+}
+
+void symtable::remove(int level){
+    for(auto& i : table){
+        if(i.second == nullptr)continue;
+        symbol* head = i.second;
+        if(head->level==level){
+            i.second = head->next;
+            delete head;
+            head = i.second;
+        }
+        symbol* temp;
+        if(head == nullptr)continue;
+        while(head->next){
+            temp = head;
+            head = head->next;
+            if(head->level==level){
+                temp->next = head->next;
+                delete head;
+                head = temp;
+            }
+        }
+    }
 }
 
 int symtable::addSymbol(const string& name, int level, stype type, int paranum, const vector<stype>& paratype){
@@ -51,13 +78,23 @@ int symtable::addSymbol(const string& name, int level, stype type, int paranum, 
 }
 
 void symtable::show(){
+    return;
+    printf("Symbol-Table\n");
     for(auto i : table){
         if(i.second == nullptr)continue;
         symbol* head = i.second;
-        printf("L:%d T:%d I:%s PN:%d PT:",head->level,head->type,head->name.c_str(),head->paranum);
+        printf("Level:%d\tType:%d\tIden:%s\tParaNum:%d\tParaType:",head->level,head->type,head->name.c_str(),head->paranum);
         for(auto k : head->paratype){
             printf("%d ",k);
         }
         printf("\n");
+        while(head->next){
+            head = head->next;
+            printf("Level:%d\tType:%d\tIden:%s\tParaNum:%d\tParaType:",head->level,head->type,head->name.c_str(),head->paranum);
+            for(auto k : head->paratype){
+                printf("%d ",k);
+            }
+            printf("\n");
+        }
     }
 }

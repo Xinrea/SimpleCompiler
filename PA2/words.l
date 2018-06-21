@@ -20,6 +20,7 @@ false	{SAVE_TOKEN;return BOOL;}
 if      {return TOKEN(IF);}
 else    {return TOKEN(ELSE);}
 while   {return TOKEN(WHILE);}
+return  {return TOKEN(RETURN);}
 {int}	{SAVE_TOKEN;return INT;}
 {float}	{SAVE_TOKEN;return FLOAT;}
 {id}	{SAVE_TOKEN;return IDENT;}

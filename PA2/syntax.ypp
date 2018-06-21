@@ -25,15 +25,15 @@
 %token <string> CHAR IDENT
 %token <string> INT BOOL
 %token <string> FLOAT
-%token <token> LB RB LP RP COM AS AAS SAS MAS DAS SEM SRET IF ELSE WHILE G S GE SE NE EQ AND OR
+%token <token> LB RB LP RP COM AS AAS SAS MAS DAS SEM SRET IF ELSE WHILE G S GE SE NE EQ AND OR RETURN
 
 %type <ident> ident
 %type <expr> exp term
 %type <varvec> paras
 %type <exprvec> calls
 %type <block> s stats block
-%type <stmt> stat vardecl fundecl ifstat whilestat
-%type <token> operation selfop asop
+%type <stmt> stat vardecl fundecl ifstat whilestat keystat
+%type <token> operation selfop asop keyword
 
 
 
@@ -49,6 +49,7 @@ stat : vardecl {$$=$1;}
     |fundecl {$$=$1;}
     |ifstat {$$=$1;}
     |whilestat {$$=$1;}
+    |keystat {$$=$1;}
     |exp {$$=new NExpressionStatement(*$1,yylineno);}
     ;
 block : LB stats RB {$$=$2;}
@@ -58,6 +59,8 @@ vardecl : ident ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4,yylineno);}
     |ident ident {$$=new NVariableDeclaration(*$1,*$2,yylineno);}
     ;
 fundecl : ident ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6,yylineno);delete $4;}
+    ;
+keystat : keyword exp {$$=new NKeywordstatement($1,*$2,yylineno);}
     ;
 ifstat : IF LP exp RP block ELSE block {$$=new NIfstatement(*$3,*$5,*$7,yylineno);}
     |IF LP exp RP block {$$=new NIfstatement(*$3,*$5,*(new NBlock(yylineno)),yylineno);}
@@ -93,6 +96,8 @@ operation : ADD | SUB | MUL | DIV | G | S | GE | SE | NE | EQ | AND | OR
 selfop : TADD | TSUB
     ;
 asop : AS | AAS | SAS | MAS | DAS
+    ;
+keyword : RETURN
     ;
 %%
 

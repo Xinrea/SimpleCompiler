@@ -77,7 +77,8 @@ public:
     }
     void semantics(int depth) const {
         symbol* ret = t.get(name,depth);
-        if(ret == nullptr)symtable::error(line, "IdentiError:", string("Undefined Identifier \"")+name+"\"");
+        if(ret == nullptr)symtable::error(line,0,name);
+        else if(ret->paranum != -1)symtable::error(line,6,name);
         return;
     }
 };
@@ -107,11 +108,14 @@ public:
     void semantics(int depth) const {
         symbol* ret = t.get(id.name,depth);
         if(ret == nullptr){
-            symtable::error(line, "IdentiError:", "Undefined Identifier");
+            symtable::error(line,1,id.name);
             return;
         }
         if(arguments.size()!=ret->paranum){
-            symtable::error(line, "FunCallError:", "Unmatched ParaNumber");
+            symtable::error(line,2,"");
+        }
+        for(auto i : arguments){
+            i->semantics(depth+1);
         }
         return;
     }
@@ -241,7 +245,6 @@ public:
         for(auto i : statements){
             i->semantics(depth);
         }
-        std::cout << "Block:" << std::endl;
         t.show();
     }
 };
@@ -276,9 +279,9 @@ public:
     NIdentifier& id;
     NExpression *assignmentExpr;
     NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int line) :
-        type(type), id(id), line(line) { }
+        type(type), id(id), line(line-1) { }
     NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr, int line) :
-        type(type), id(id), assignmentExpr(assignmentExpr), line(line) { }
+        type(type), id(id), assignmentExpr(assignmentExpr), line(line-1) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -302,25 +305,25 @@ public:
         int ret;
         if(type.name == "Int"){
             ret = t.addSymbol(id.name,depth,T_INT,-1,{});
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             return;
         }
         if(type.name == "Float"){
             ret = t.addSymbol(id.name,depth,T_FLOAT,-1,{});
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             return;
         }
         if(type.name == "Char"){
             ret = t.addSymbol(id.name,depth,T_CHAR,-1,{});
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             return;
         }
         if(type.name == "Bool"){
             ret = t.addSymbol(id.name,depth,T_BOOL,-1,{});
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             return;
         }
-        symtable::error(line, "TypeError:", "Undefined Type");
+        symtable::error(line, 4, type.name);
         return;
     }
 };
@@ -370,41 +373,39 @@ public:
         }
         if(type.name == "Int"){
             ret = t.addSymbol(id.name,depth,T_INT,arguments.size(),paratypelist);
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             for(auto i : arguments){
                 i->semantics(depth+1);
             }
             block.semantics(depth+1);
-            return;
         }
-        if(type.name == "Float"){
+        else if(type.name == "Float"){
             ret = t.addSymbol(id.name,depth,T_FLOAT,arguments.size(),paratypelist);
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             for(auto i : arguments){
                 i->semantics(depth+1);
             }
             block.semantics(depth+1);
-            return;
         }
-        if(type.name == "Char"){
+        else if(type.name == "Char"){
             ret = t.addSymbol(id.name,depth,T_CHAR,arguments.size(),paratypelist);
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             for(auto i : arguments){
                 i->semantics(depth+1);
             }
             block.semantics(depth+1);
-            return;
         }
-        if(type.name == "Bool"){
+        else if(type.name == "Bool"){
             ret = t.addSymbol(id.name,depth,T_BOOL,arguments.size(),paratypelist);
-            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            if(ret == -1)symtable::error(line, 3, id.name);
             for(auto i : arguments){
                 i->semantics(depth+1);
             }
             block.semantics(depth+1);
-            return;
         }
-        symtable::error(line, "TypeError:", string("Undefined Function Return Type \"")+type.name+"\"");
+        else symtable::error(line, 4, type.name);
+        if(!t.return_flag)symtable::error(line, 5, id.name);
+        t.remove(depth+1);
         return;
     }
 };
@@ -446,7 +447,9 @@ public:
         std::cout << "IfStat end" << std::endl;
     }
     void semantics(int depth) const {
-
+        condition.semantics(depth+1);
+        block.semantics(depth+1);
+        t.remove(depth+1);
     }
 };
 
@@ -477,6 +480,27 @@ public:
         std::cout << "While end" << std::endl;
     }
     void semantics(int depth) const {
+        condition.semantics(depth+1);
+        block.semantics(depth+1);
+        t.remove(depth+1);
+    }
+};
 
+class NKeywordstatement : public NStatement {
+public:
+    int line;
+    int keyword;
+    const NExpression& exp;
+    NKeywordstatement(int keyword, const NExpression& exp, int line):keyword(keyword),exp(exp), line(line){}
+    void printNode(int depth) const{
+        for(int i=0;i<depth;++i){
+            std::cout << " ";
+        }
+        printf("Keystat: %d\n",keyword);
+        exp.printNode(depth+1);
+    }
+    void semantics(int depth) const {
+        exp.semantics(depth);
+        t.return_flag = true;
     }
 };
