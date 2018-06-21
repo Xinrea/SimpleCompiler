@@ -1,11 +1,14 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include "symtable.h"
 
 class CodeGenContext;
 class NStatement;
 class NExpression;
 class NVariableDeclaration;
+
+static symtable t;
 
 typedef std::vector<NStatement*> StatementList;
 typedef std::vector<NExpression*> ExpressionList;
@@ -14,60 +17,78 @@ typedef std::vector<NVariableDeclaration*> VariableList;
 class Node {
 public:
     virtual void printNode(int depth) const = 0;
+    virtual void semantics(int depth) const = 0;
 };
 
 class NExpression : public Node {
 public:
     void printNode(int depth) const {}
+    void semantics(int depth) const {}
 };
 
 class NStatement : public Node {
 public:
     void printNode(int depth) const {}
+    void semantics(int depth) const {}
 };
 
 class NInteger : public NExpression {
 public:
+    int line;
     long long value;
-    NInteger(long long value) : value(value) { }
+    NInteger(long long value, int line) : value(value),line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
         }
         std::cout << "Const-Integer: " << value << std::endl;
     }
+    void semantics(int depth) const {
+        return;
+    }
 };
 
 class NDouble : public NExpression {
 public:
+    int line;
     double value;
-    NDouble(double value) : value(value) { }
+    NDouble(double value, int line) : value(value),line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
         }
         std::cout << "Const-Float: " << value << std::endl;
     }
+    void semantics(int depth) const {
+        return;
+    }
 };
 
 class NIdentifier : public NExpression {
 public:
+    int line;
     std::string name;
-    NIdentifier(const std::string& name) : name(name) { }
+    NIdentifier(const std::string& name, int line) : name(name),line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
         }
         std::cout << "Identifier: " << name << std::endl;
     }
+    void semantics(int depth) const {
+        symbol* ret = t.get(name,depth);
+        if(ret == nullptr)symtable::error(line, "IdentiError:", string("Undefined Identifier \"")+name+"\"");
+        return;
+    }
 };
 
 class NMethodCall : public NExpression {
 public:
+    int line;
     const NIdentifier& id;
     ExpressionList arguments;
-    NMethodCall(const NIdentifier& id, ExpressionList& arguments) :
-        id(id), arguments(arguments) { }
+    NMethodCall(const NIdentifier& id, ExpressionList& arguments, int line) :
+        id(id), arguments(arguments), line(line) { }
     NMethodCall(const NIdentifier& id) : id(id) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
@@ -83,15 +104,27 @@ public:
         }
         std::cout << "end" << std::endl;
     }
+    void semantics(int depth) const {
+        symbol* ret = t.get(id.name,depth);
+        if(ret == nullptr){
+            symtable::error(line, "IdentiError:", "Undefined Identifier");
+            return;
+        }
+        if(arguments.size()!=ret->paranum){
+            symtable::error(line, "FunCallError:", "Unmatched ParaNumber");
+        }
+        return;
+    }
 };
 
 class NBinaryOperator : public NExpression {
 public:
+    int line;
     int op;
     NExpression& lhs;
     NExpression& rhs;
-    NBinaryOperator(NExpression& lhs, int op, NExpression& rhs) :
-        lhs(lhs), rhs(rhs), op(op) { }
+    NBinaryOperator(NExpression& lhs, int op, NExpression& rhs, int line) :
+        lhs(lhs), rhs(rhs), op(op), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -104,14 +137,20 @@ public:
         }
         std::cout << "end" << std::endl;
     }
+    void semantics(int depth) const {
+        lhs.semantics(depth);
+        rhs.semantics(depth);
+        return;
+    }
 };
 
 class NSelfLOperator : public NExpression {
 public:
+    int line;
     int op;
     NExpression& hs;
-    NSelfLOperator(int op, NExpression& hs) :
-        hs(hs),op(op) { }
+    NSelfLOperator(int op, NExpression& hs, int line) :
+        hs(hs),op(op), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -123,14 +162,19 @@ public:
         }
         std::cout << "end" << std::endl;
     }
+    void semantics(int depth) const {
+        hs.semantics(depth);
+        return;
+    }
 };
 
 class NSelfROperator : public NExpression {
 public:
+    int line;
     int op;
     NExpression& hs;
-    NSelfROperator(NExpression& hs,int op) :
-        hs(hs),op(op) { }
+    NSelfROperator(NExpression& hs,int op, int line) :
+        hs(hs),op(op), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -142,15 +186,20 @@ public:
         }
         std::cout << "end" << std::endl;
     }
+    void semantics(int depth) const {
+        hs.semantics(depth);
+        return;
+    }
 };
 
 class NAssignment : public NExpression {
 public:
+    int line;
     int optype;
     NIdentifier& lhs;
     NExpression& rhs;
-    NAssignment(int optype, NIdentifier& lhs, NExpression& rhs) : 
-        optype(optype), lhs(lhs), rhs(rhs) { }
+    NAssignment(int optype, NIdentifier& lhs, NExpression& rhs, int line) : 
+        optype(optype), lhs(lhs), rhs(rhs), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -163,12 +212,18 @@ public:
         }
         std::cout << "Assignment end" << std::endl;
     }
+    void semantics(int depth) const {
+        lhs.semantics(depth);
+        rhs.semantics(depth);
+        return;
+    }
 };
 
 class NBlock : public NExpression {
 public:
+    int line;
     StatementList statements;
-    NBlock() { }
+    NBlock(int line):line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -182,13 +237,21 @@ public:
         }
         std::cout << "Block end" << std::endl;
     }
+    void semantics(int depth) const {
+        for(auto i : statements){
+            i->semantics(depth);
+        }
+        std::cout << "Block:" << std::endl;
+        t.show();
+    }
 };
 
 class NExpressionStatement : public NStatement {
 public:
+    int line;
     NExpression& expression;
-    NExpressionStatement(NExpression& expression) : 
-        expression(expression) { }
+    NExpressionStatement(NExpression& expression, int line) : 
+        expression(expression), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -200,17 +263,22 @@ public:
         }
         std::cout << "Exp end" << std::endl;
     }
+    void semantics(int depth) const {
+        expression.semantics(depth);
+        return;
+    }
 };
 
 class NVariableDeclaration : public NStatement {
 public:
+    int line;
     const NIdentifier& type;
     NIdentifier& id;
     NExpression *assignmentExpr;
-    NVariableDeclaration(const NIdentifier& type, NIdentifier& id) :
-        type(type), id(id) { }
-    NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr) :
-        type(type), id(id), assignmentExpr(assignmentExpr) { }
+    NVariableDeclaration(const NIdentifier& type, NIdentifier& id, int line) :
+        type(type), id(id), line(line) { }
+    NVariableDeclaration(const NIdentifier& type, NIdentifier& id, NExpression *assignmentExpr, int line) :
+        type(type), id(id), assignmentExpr(assignmentExpr), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -230,17 +298,43 @@ public:
         }
         std::cout << "Decl end" << std::endl;
     }
+    void semantics(int depth) const {
+        int ret;
+        if(type.name == "Int"){
+            ret = t.addSymbol(id.name,depth,T_INT,-1,{});
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            return;
+        }
+        if(type.name == "Float"){
+            ret = t.addSymbol(id.name,depth,T_FLOAT,-1,{});
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            return;
+        }
+        if(type.name == "Char"){
+            ret = t.addSymbol(id.name,depth,T_CHAR,-1,{});
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            return;
+        }
+        if(type.name == "Bool"){
+            ret = t.addSymbol(id.name,depth,T_BOOL,-1,{});
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            return;
+        }
+        symtable::error(line, "TypeError:", "Undefined Type");
+        return;
+    }
 };
 
 class NFunctionDeclaration : public NStatement {
 public:
+    int line;
     const NIdentifier& type;
     const NIdentifier& id;
     VariableList arguments;
     NBlock& block;
     NFunctionDeclaration(const NIdentifier& type, const NIdentifier& id, 
-            const VariableList& arguments, NBlock& block) :
-        type(type), id(id), arguments(arguments), block(block) { }
+            const VariableList& arguments, NBlock& block, int line) :
+        type(type), id(id), arguments(arguments), block(block), line(line) { }
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -265,14 +359,63 @@ public:
         }
         std::cout << "Decl end " << std::endl;
     }
+    void semantics(int depth) const {
+        int ret;
+        vector<stype> paratypelist;
+        for(int i = 0;i < arguments.size(); ++i){
+            if(arguments[i]->type.name == "Int")paratypelist.push_back(T_INT);
+            else if(arguments[i]->type.name == "Float")paratypelist.push_back(T_FLOAT);
+            else if(arguments[i]->type.name == "Char")paratypelist.push_back(T_CHAR);
+            else if(arguments[i]->type.name == "Bool")paratypelist.push_back(T_BOOL);
+        }
+        if(type.name == "Int"){
+            ret = t.addSymbol(id.name,depth,T_INT,arguments.size(),paratypelist);
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            for(auto i : arguments){
+                i->semantics(depth+1);
+            }
+            block.semantics(depth+1);
+            return;
+        }
+        if(type.name == "Float"){
+            ret = t.addSymbol(id.name,depth,T_FLOAT,arguments.size(),paratypelist);
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            for(auto i : arguments){
+                i->semantics(depth+1);
+            }
+            block.semantics(depth+1);
+            return;
+        }
+        if(type.name == "Char"){
+            ret = t.addSymbol(id.name,depth,T_CHAR,arguments.size(),paratypelist);
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            for(auto i : arguments){
+                i->semantics(depth+1);
+            }
+            block.semantics(depth+1);
+            return;
+        }
+        if(type.name == "Bool"){
+            ret = t.addSymbol(id.name,depth,T_BOOL,arguments.size(),paratypelist);
+            if(ret == -1)symtable::error(line, "IdentiError:", string("Redefined Identifier \"")+id.name+"\"");
+            for(auto i : arguments){
+                i->semantics(depth+1);
+            }
+            block.semantics(depth+1);
+            return;
+        }
+        symtable::error(line, "TypeError:", string("Undefined Function Return Type \"")+type.name+"\"");
+        return;
+    }
 };
 
 class NIfstatement : public NStatement {
 public:
+    int line;
     const NExpression& condition;
     const NBlock& block;
     const NBlock& elseBlock;
-    NIfstatement(const NExpression& condition,const NBlock& block,const NBlock& elseBlock):condition(condition),block(block),elseBlock(elseBlock){}
+    NIfstatement(const NExpression& condition,const NBlock& block,const NBlock& elseBlock, int line):condition(condition),block(block),elseBlock(elseBlock),line(line){}
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -302,13 +445,17 @@ public:
         }
         std::cout << "IfStat end" << std::endl;
     }
+    void semantics(int depth) const {
+
+    }
 };
 
 class NWhilestatement : public NStatement {
 public:
+    int line;
     const NExpression& condition;
     const NBlock& block;
-    NWhilestatement(const NExpression& condition,const NBlock& block):condition(condition),block(block){}
+    NWhilestatement(const NExpression& condition,const NBlock& block, int line):condition(condition),block(block), line(line){}
     void printNode(int depth) const{
         for(int i=0;i<depth;++i){
             std::cout << " ";
@@ -328,5 +475,8 @@ public:
             std::cout << " ";
         }
         std::cout << "While end" << std::endl;
+    }
+    void semantics(int depth) const {
+
     }
 };

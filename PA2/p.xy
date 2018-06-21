@@ -1,21 +1,8 @@
-Int main(){
-    Char c = 'a'
-    Int x = 10
-    Int b1(int c, int d) {c+d a+b}
-    b1()
-    if(a){
-        b1()
-    }
-    else{
-        
-    }
+Int a
+Char b
+Int c(Int d){
+    Int deep
 }
-
-while(k){
-    do()
-}
-
-++a+b
-a+++c
-a+=b
-a>b
+Float e = 1.25
+a=b+e+f
+c(1.3,4)

@@ -42,51 +42,51 @@
 %%
 s : stats {topBlock=$1;}
     ;
-stats : stat {$$=new NBlock();$$->statements.push_back($<stmt>1);}
+stats : stat {$$=new NBlock(yylineno);$$->statements.push_back($<stmt>1);}
     |stats stat {$1->statements.push_back($<stmt>2);}
     ;
 stat : vardecl {$$=$1;}
     |fundecl {$$=$1;}
     |ifstat {$$=$1;}
     |whilestat {$$=$1;}
-    |exp {$$=new NExpressionStatement(*$1);}
+    |exp {$$=new NExpressionStatement(*$1,yylineno);}
     ;
 block : LB stats RB {$$=$2;}
-    |LB RB {$$=new NBlock();}
+    |LB RB {$$=new NBlock(yylineno);}
     ;
-vardecl : ident ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4);}
-    |ident ident {$$=new NVariableDeclaration(*$1,*$2);}
+vardecl : ident ident AS exp {$$=new NVariableDeclaration(*$1,*$2,$4,yylineno);}
+    |ident ident {$$=new NVariableDeclaration(*$1,*$2,yylineno);}
     ;
-fundecl : ident ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6);delete $4;}
+fundecl : ident ident LP paras RP block {$$=new NFunctionDeclaration(*$1,*$2,*$4,*$6,yylineno);delete $4;}
     ;
-ifstat : IF LP exp RP block ELSE block {$$=new NIfstatement(*$3,*$5,*$7);}
-    |IF LP exp RP block {$$=new NIfstatement(*$3,*$5,*(new NBlock()));}
+ifstat : IF LP exp RP block ELSE block {$$=new NIfstatement(*$3,*$5,*$7,yylineno);}
+    |IF LP exp RP block {$$=new NIfstatement(*$3,*$5,*(new NBlock(yylineno)),yylineno);}
     ;
-whilestat : WHILE LP exp RP block {$$=new NWhilestatement(*$3,*$5);}
+whilestat : WHILE LP exp RP block {$$=new NWhilestatement(*$3,*$5,yylineno);}
     ;
 paras : {$$=new VariableList();}
     |vardecl {$$=new VariableList();$$->push_back($<var_decl>1);}
     |paras COM vardecl {$$->push_back($<var_decl>3);}
     ;
-ident : IDENT {$$=new NIdentifier(*$1);delete $1;}
+ident : IDENT {$$=new NIdentifier(*$1,yylineno);delete $1;}
     ;
-exp : ident asop exp {$$=new NAssignment($2,*$<ident>1,*$3);}
-    |ident LP calls RP {$$=new NMethodCall(*$1,*$3);delete $3;}
+exp : ident asop exp {$$=new NAssignment($2,*$<ident>1,*$3,yylineno);}
+    |ident LP calls RP {$$=new NMethodCall(*$1,*$3,yylineno);delete $3;}
     |ident {$<ident>$=$1;}
     |term
-    |exp operation exp {$$=new NBinaryOperator(*$1,$2,*$3);}
-    |selfop ident {$$=new NSelfLOperator($1,*$<ident>2);}
-    |ident selfop {$$=new NSelfROperator(*$<ident>1,$2);}
+    |exp operation exp {$$=new NBinaryOperator(*$1,$2,*$3,yylineno);}
+    |selfop ident {$$=new NSelfLOperator($1,*$<ident>2,yylineno);}
+    |ident selfop {$$=new NSelfROperator(*$<ident>1,$2,yylineno);}
     |LP exp RP {$$=$2;}
     ;
 calls : {$$=new ExpressionList();}
     |exp {$$=new ExpressionList();$$->push_back($1);}
     |calls COM exp {$1->push_back($3);}
     ;
-term : INT {$$=new NInteger(atoi($1->c_str()));}
-    |FLOAT {$$=new NDouble(atof($1->c_str()));}
-    |BOOL {$$=new NInteger((*$1)[0]=='t'?1:0);}
-    |CHAR {$$=new NInteger((*$1)[0]);}
+term : INT {$$=new NInteger(atoi($1->c_str()),yylineno);}
+    |FLOAT {$$=new NDouble(atof($1->c_str()),yylineno);}
+    |BOOL {$$=new NInteger((*$1)[0]=='t'?1:0,yylineno);}
+    |CHAR {$$=new NInteger((*$1)[0],yylineno);}
     ;
 operation : ADD | SUB | MUL | DIV | G | S | GE | SE | NE | EQ | AND | OR
     ;
@@ -100,7 +100,7 @@ int main(int argc, char** argv){
 	yyin = fopen(argv[1],"r");
 	if(!yyin)return 0;
 	yyparse();
-    topBlock->printNode(0);
+    topBlock->semantics(0);
 	return 0;
 }
 
