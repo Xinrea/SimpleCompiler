@@ -78,7 +78,6 @@ int symtable::addSymbol(const string& name, int level, stype type, int paranum, 
 }
 
 void symtable::show(){
-    return;
     printf("Symbol-Table\n");
     for(auto i : table){
         if(i.second == nullptr)continue;

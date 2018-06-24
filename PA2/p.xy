@@ -1,21 +1,16 @@
-Int a
+Bool a
 Int b
-Char a
 while(a){
-    test(b)
     Int k
-}
-Int c(Int b){
-    
+    k = a+b
+    if(k){
+        Int j
+    }
 }
 Int d(){
     return b
 }
 if(a==b){
-    c(k)
+    d()
 }
-None j
-c()
-a = d
-d++
 a++
